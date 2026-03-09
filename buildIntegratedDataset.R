@@ -3,22 +3,32 @@
 ## Quick program to try to integrate CSV data sets and
 ## confirm the correct distribution of variables.
 ##
+## Usage:
+##    ./buildIntegratedData.R
+## in the same directory as the CSV file exist (or are linked). All CSV files
+## in the current working directory are bound (via rbind() ) into a single
+## data-frame which is then written to a CSV output file. A crude data file
+## selector (i.e. if(infile == 'this') { prepare this way } etc is used to
+## make the input files compatible with each other.
+##
 ## VERSION HISTORY
 ## [2025-12-01 MeD] Initial version
 ##
 ##********************************************************************************
 ## Libraries
 library(AnalysisHeader)
+library(tools)
 
-Program <- 'testIntegration.R'
-Version <- 'v1.0'
+Program <- 'buildIntegratedDataset.R'
+Version <- 'v1.2'
 
-options(warn=1, width=80)
+options(warn=1, width=132)
 
 StartTime <- Sys.time()
-Today <- format(StartTime, "%Y-%m-%d")
-outFile <- paste0('dataIntegration_', Today, ".csv")
-logFile <- paste0('testIntegration_', Today, ".log")
+Today <- format(StartTime, "_%Y-%m-%d")
+rootName <- gsub('\\.R', '', Program)
+outFile <- paste0(rootName, Today, ".csv")
+logFile <- paste0(rootName, Today, ".log")
 
 if( !interactive() ) {
     cat("\n*** Redirecting program reporting to Log File:", logFile, "\n")
@@ -26,6 +36,10 @@ if( !interactive() ) {
     sink(Log)
     sink(Log, type='message')
 }
+
+## "Pretty" lines for dividing the output - double-header or single-header
+dhLine <- paste(rep('=', length=(getOption('width')-2)), collapse='')
+shLine <- paste(rep('-', length=(getOption('width')-2)), collapse='')
 
 ## Capture the run-time information, including I/O file names
 runInfo <- collectRunInfo(programName=Program, version=Version)
@@ -41,33 +55,36 @@ cat("Output file is:\t", outFile, "\n")
 inFiles <- list.files(pattern='\\.csv$')
 
 ## Don't integrate the already integrated dataset
-inx <- grepl('^dataIntegration_', inFiles)
+grepPattern <- paste0('^', rootName, '_')
+cat("Excluded Input File Pattern =", grepPattern, "\n")
+inx <- grepl(grepPattern, inFiles)
+droppedFiles <- 'None'   # Expect this to be replaced if sum(inx) > 0
 if(sum(inx) > 0) {
     droppedFiles <- inFiles[inx]
     inFiles <- inFiles[ !inx ]
 }
 cat("Input files are:\n\t",
     paste(inFiles, collapse='\n\t'), "\n\n", sep='')
-if(1 == 1) {
-    cat("\tDropped file:", paste(droppedFiles, collapse=', '), "\n")
-}
+cat("Excluded files:\n\t",
+    paste(droppedFiles, collapse='\n\t'), "\n\n", sep='')
 
 ##----------------------------------------------------------------------
 ## Create nicknames from the file names via truncation at HYPHEN
 nNames <- gsub('^([^-]*)-.*$', '\\1', inFiles)
-cat("\nFile nicknames are:\n")
+cat(shLine, "\nFile nicknames are:\n")
 print(data.frame(File=inFiles, Nickname=nNames), row.names=FALSE)
 
 ## Read in the files into a list, naming list elements via nicknames
-cat("\nRead in the datasets into RAM in list 'dat[]'.\n")
+cat(dhLine, "\nRead in the datasets into RAM in list 'dat[]'.\n")
 dat <- list()
 for(i in 1:length(inFiles)) {
     cat("\tReading:", inFiles[i], "\n")
     dat[[ nNames[i] ]] <- read.csv(inFiles[i], header=TRUE, as.is=TRUE)
+    cat("\t\tChecksum:", md5sum(inFiles[i]), "\n")
 }
 
 ## Display the concordance of the column naming
-cat("\nColumn naming in the multiple datasets:\n")
+cat("\n", shLine, "\nColumn naming in the multiple datasets:\n")
 for(nm in nNames) {
     cat(nm, "\n\t", paste(colnames(dat[[nm]]), collapse=', '), "\n", sep='')
 }
@@ -77,7 +94,7 @@ for(nm in nNames) {
 ##        instead modify the "Assay" from "SpAb" to "Isotype-SpAb".
 ##        Then, not Isotype column is needed and we're more
 ##        consistent with the Marchand dataset.
-cat("\nAdjust datasets for integration:\n")
+cat("\n", shLine, "\nAdjust datasets for integration:\n")
 for(nm in nNames) {
     cat("\tAdjusting:", nm, "\n")
 
@@ -96,6 +113,11 @@ for(nm in nNames) {
         dat[[nm]]$Isotype <- NA
     }
     if(nm == 'Dobaño') {
+        ## FIXME: I keep wondering if I'd be better off with the
+        ## Dobaño data using the trick I used with Guzmán, that is,
+        ## combining the assay name "SpecAb" for "Specific Antibody",
+        ## with the Isotype, e.g. "SpAb-IgM", and dropping the Isotype
+        ## column.
         cat("\t\tDrop rows that have 'UreaPresent' as TRUE.\n")
         ## Drop rows that have 'UreaPresent' == TRUE
         dat[[nm]] <- dat[[nm]][ dat[[nm]]$UreaPresent == FALSE, ]
@@ -113,33 +135,39 @@ for(nm in nNames) {
         cat("\t\tAdd 'fake' Isotype column full of NA.\n")
         dat[[nm]]$Isotype <- NA
     }
+    if(nm == 'Guzmán') {
+        ## Drop columns that are not needed
+
+        ## Need to add Dobaño Isotype column, full of NA
+        cat("\t\tAdd 'fake' Isotype column full of NA.\n")
+        dat[[nm]]$Isotype <- NA
+    }
 }
 
 ## Bind everything together - do it in a loop to generalize, but its bad for RAM
-cat("\nBind datasets together into 'd'.\n")
+cat(dhLine, "\nBind datasets together into 'd'.\n")
 d <- NULL
 for(nm in nNames) {
     d <- rbind(d, dat[[nm]])
 }
 
 ## Describe basics of 'd'
-cat("\nDataset 'd' is", nrow(d), "rows x", ncol(d), "columns.\n")
-cat("Total size is", object.size(d), "bytes.\n")
-
-## Display some stats
-cat("\n------------------------------------------------------------\n")
-cat("Some distributions of the contents of the columns in 'd' are:\n\n")
-print(sapply(d[, -c(3,10)], function(y) table(y, useNA='ifany', deparse.level = 0)))
+cat("\nDataset 'd' is", format(nrow(d), big.mark=','), "rows x", ncol(d), "columns.\n")
+cat("Total size is", format(unclass(object.size(d)), big.mark=','), "bytes.\n")
 
 ## Output the integrated dataset
-cat("\n------------------------------------------------------------\n")
-cat("Writing data to:", outFile, "\n")
+cat("\nWriting data to:", outFile, "\n")
 write.csv(d, outFile, row.names=FALSE)
+cat("Checksum of 'd' is", md5sum(outFile), "\n")
+
+## Display some stats
+cat(dhLine, "\nSome distributions of the contents of the columns in 'd' are:\n\n")
+print(sapply(d[, -c(3,10)], function(y) table(y, useNA='ifany', deparse.level = 0)))
 
 ##********************************************************************************
 ## Close up
 EndTime <- Sys.time()
-cat("\nCompleted:", format(EndTime, '%Y-%m-%d %H:%M:%S'), "\n")
+cat(dhLine, "\nCompleted:", format(EndTime, '%Y-%m-%d %H:%M:%S'), "\n")
 cat("Elapsed time:", difftime(EndTime, StartTime, units='secs'), "secs.\n")
 
 if( !interactive() ) {
@@ -147,13 +175,3 @@ if( !interactive() ) {
     sink()
 }
 cat("Completed.\n")
-
-## Fixes:
-##   Trial == NA in Arnaud's data
-##   Day == NA (when?)
-##   Strain --> Confirm strains. Check NA in strains. Check Dobaño strains.
-##   Protein --> Confirm Cox protein assignment
-##
-## Confirm the order of columns in the existing data matches that in Controlled-Vocab.R
-##
-
