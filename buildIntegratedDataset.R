@@ -20,7 +20,7 @@ library(AnalysisHeader)
 library(tools)
 
 Program <- 'buildIntegratedDataset.R'
-Version <- 'v1.2'
+Version <- 'v1.2.1'
 
 options(warn=1, width=132)
 
