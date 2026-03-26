@@ -93,7 +93,7 @@ for(nm in nNames) {
 ## FIXME: Consider not making a fake Isotype column but
 ##        instead modify the "Assay" from "SpAb" to "Isotype-SpAb".
 ##        Then, not Isotype column is needed and we're more
-##        consistent with the Marchand dataset.
+##        consistent with the Marchant dataset.
 cat("\n", shLine, "\nAdjust datasets for integration:\n")
 for(nm in nNames) {
     cat("\tAdjusting:", nm, "\n")
@@ -126,12 +126,12 @@ for(nm in nNames) {
         cat("\t\tDrop columns:", paste(colnames(dat[[nm]])[ -(1:12) ], collapse=', '), "\n")
         dat[['Dobaño']] <- dat[['Dobaño']][, 1:12]
     }
-    if(nm == 'Marchand') {
+    if(nm == 'Marchant') {
         ## Drop columns that are not needed
         cat("\t\tDrop columns:", paste(colnames(dat[[nm]])[ -(1:11) ], collapse=', '), "\n")
-        dat[['Marchand']] <- dat[['Marchand']][, 1:11]
+        dat[['Marchant']] <- dat[['Marchant']][, 1:11]
 
-        ## Need Dobaño Isotype column so add column to Marchand data as NA
+        ## Need Dobaño Isotype column so add column to Marchant data as NA
         cat("\t\tAdd 'fake' Isotype column full of NA.\n")
         dat[[nm]]$Isotype <- NA
     }
@@ -148,6 +148,7 @@ for(nm in nNames) {
 cat(dhLine, "\nBind datasets together into 'd'.\n")
 d <- NULL
 for(nm in nNames) {
+    cat("\tbinding:", nm, "\n")
     d <- rbind(d, dat[[nm]])
 }
 

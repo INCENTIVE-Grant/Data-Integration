@@ -1,5 +1,5 @@
 *~
 *.pdf
 *.csv
-
 *.log
+!buildIntegratedDataset_2026-03-26.log
