@@ -1,0 +1,204 @@
+----------------------------------------------------------------------------------------------------------------------------------
+Program: buildIntegratedDataset.R
+Version: v1.2.1, Git Tag: v1.2.1
+Run Date: 2026-03-26 15:23:47 EDT
+User: hvp
+Hostname: xena
+Working Dir: /home/hvp/Documents/Projects/2025-12-01_Data-Integration
+Arguments: 
+----------------------------------------------------------------------------------------------------------------------------------
+R version 4.5.0 (2025-04-11)
+Platform: x86_64-pc-linux-gnu
+Running under: Ubuntu 24.04.4 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0  LAPACK version 3.12.0
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C               LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8    LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C             LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: America/New_York
+tzcode source: system (glibc)
+
+attached base packages:
+[1] tools     stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] AnalysisHeader_1.6
+
+loaded via a namespace (and not attached):
+[1] compiler_4.5.0
+---------------------------------------------------------------------------------------------------------------------------------- 
+Log file is:	 buildIntegratedDataset_2026-03-26.log 
+Output file is:	 buildIntegratedDataset_2026-03-26.csv 
+Excluded Input File Pattern = ^buildIntegratedDataset_ 
+Input files are:
+	Cox-Lab-Serology_QIV-1-2-3_Updated_2025-03-31_20260317.csv
+	Dobaño-Aguilar_QIV-1-2-3_2024-07-19_20260312.csv
+	Guzmán-Riese-Trittel_Soluble-Factors_2026-03-03_20260312.csv
+	Marchant-Sharma-Correia_Systems-Serology_2024-10-23_20260223.csv
+
+Excluded files:
+	buildIntegratedDataset_2026-03-26.csv
+
+---------------------------------------------------------------------------------------------------------------------------------- 
+File nicknames are:
+                                                             File Nickname
+       Cox-Lab-Serology_QIV-1-2-3_Updated_2025-03-31_20260317.csv      Cox
+                 Dobaño-Aguilar_QIV-1-2-3_2024-07-19_20260312.csv   Dobaño
+     Guzmán-Riese-Trittel_Soluble-Factors_2026-03-03_20260312.csv   Guzmán
+ Marchant-Sharma-Correia_Systems-Serology_2024-10-23_20260223.csv Marchant
+================================================================================================================================== 
+Read in the datasets into RAM in list 'dat[]'.
+	Reading: Cox-Lab-Serology_QIV-1-2-3_Updated_2025-03-31_20260317.csv 
+		Checksum: be216194b0c610738fce83df441fffec 
+	Reading: Dobaño-Aguilar_QIV-1-2-3_2024-07-19_20260312.csv 
+		Checksum: eaad2f80916412bd185e8f38b1204eaf 
+	Reading: Guzmán-Riese-Trittel_Soluble-Factors_2026-03-03_20260312.csv 
+		Checksum: 128d3b7113bf89f423177c507fc0ca70 
+	Reading: Marchant-Sharma-Correia_Systems-Serology_2024-10-23_20260223.csv 
+		Checksum: 97bd98ff9c8514d55d17b6c838da2a2e 
+
+ ---------------------------------------------------------------------------------------------------------------------------------- 
+Column naming in the multiple datasets:
+Cox
+	SampleType, Trial, SubjectID, Day, Assay, Strain, Protein, StrainProt, Dilution, Value, ValueUnit, SubAssay
+Dobaño
+	SampleType, Trial, SubjectID, Day, Assay, Strain, Protein, StrainProt, Dilution, Value, ValueUnit, Isotype, UreaPresent, PlateID, Well
+Guzmán
+	SampleType, Trial, SubjectID, Day, Assay, Strain, Protein, StrainProt, Dilution, Value, ValueUnit
+Marchant
+	SampleType, Trial, SubjectID, Day, Assay, Strain, Protein, StrainProt, Dilution, Value, ValueUnit, Supplier, Plate, Well
+
+ ---------------------------------------------------------------------------------------------------------------------------------- 
+Adjust datasets for integration:
+	Adjusting: Cox 
+		Selection of only SampleType 'Samp'.
+		Drop column 'SubAssay'
+		Add 'fake' Isotype column full of NA.
+	Adjusting: Dobaño 
+		Selection of only SampleType 'Samp'.
+		Drop rows that have 'UreaPresent' as TRUE.
+		Drop columns: UreaPresent, PlateID, Well 
+	Adjusting: Guzmán 
+		Selection of only SampleType 'Samp'.
+		Add 'fake' Isotype column full of NA.
+	Adjusting: Marchant 
+		Selection of only SampleType 'Samp'.
+		Drop columns: Supplier, Plate, Well 
+		Add 'fake' Isotype column full of NA.
+================================================================================================================================== 
+Bind datasets together into 'd'.
+	binding: Cox 
+	binding: Dobaño 
+	binding: Guzmán 
+	binding: Marchant 
+
+Dataset 'd' is 248,910 rows x 12 columns.
+Total size is 43,927,320 bytes.
+
+Writing data to: buildIntegratedDataset_2026-03-26.csv 
+Checksum of 'd' is b5cc103c3e70e2801fd94c19fd0d833a 
+================================================================================================================================== 
+Some distributions of the contents of the columns in 'd' are:
+
+$SampleType
+
+  Samp 
+248910 
+
+$Trial
+
+  QIV1   QIV2   QIV3 
+ 43600 155872  49438 
+
+$Day
+
+      D000     D003-8       D028       D030       D058       D180       D360       D365 FoldChange    PostVax     PreVac  Responder 
+     84907      18560       6400      52964      54443      15900        920      12880        484        484        484        484 
+
+$Assay
+
+                 ADCD                  ADCP                 ELISA                  ELLA                FcɣR2A                FcɣR2B 
+                12380                  6220                  3016                  1266                 18660                 18660 
+               FcɣR3A                FcɣR3B                    HI                    MN              SF:APRIL                SF:EGF 
+                18660                 18540                  5444                  1696                  3432                  3432 
+    SF:ENA-78 (CXCL5)    SF:Eotaxin (CCL11)              SF:FGF-2      SF:G-CSF (CSF-3)             SF:GM-CSF                SF:HGF 
+                 3432                  3432                  3432                  3432                  3432                  3432 
+         SF:IFN alpha          SF:IFN gamma          SF:IL-1 beta              SF:IL-10     SF:IL-12/IL-23p40              SF:IL-13 
+                 3432                  3432                  3432                  3432                  3432                  3432 
+             SF:IL-15    SF:IL-17A (CTLA-8)              SF:IL-18             SF:IL-1RA               SF:IL-2              SF:IL-21 
+                 3432                  3432                  3432                  3432                  3432                  3432 
+             SF:IL-27              SF:IL-2R               SF:IL-4               SF:IL-5               SF:IL-6               SF:IL-7 
+                 3432                  3432                  3432                  3432                  3432                  3432 
+      SF:IL-8 (CXCL8)     SF:IP-10 (CXCL10)       SF:MCP-1 (CCL2)        SF:MIG (CXCL9) SF:MIP-1 alpha (CCL3)  SF:MIP-1 beta (CCL4) 
+                 3432                  3432                  3432                  3432                  3432                  3432 
+       SF:SDF-1 alpha          SF:TNF alpha             SF:VEGF-A                SpecAb 
+                 3432                  3432                  3432                 24248 
+
+$Strain
+
+                                         A/Brisbane/2/2018 (H1N1)                                         A/Brisbane/57/2007 (H1N1) 
+                                                            11316                                                               100 
+                                       A/California/4/2009 (H1N1)                                        A/California/7/2019 (H1N1) 
+                                                            11916                                                               576 
+                                           A/Darwin/6/2021 (H3N2)                                            A/Darwin/9/2021 (H3N2) 
+                                                             4656                                                              4380 
+       A/Equine/Prague/1/1956 (H7N7) + A/California/7/2019 (H1N1)                            A/Guangdong-Maonan/SWL1536/2019 (H1N1) 
+                                                              276                                                              6560 
+                                                           A/H6N2                                                            A/H7N1 
+                                                              146                                                               146 
+                                       A/Hong Kong/45/2019 (H3N2)                                      A/Hong Kong/4801/2014 (H3N2) 
+                                                            11916                                                              4756 
+                                        A/Panama/2007/1999 (H3N2)                            A/Singapore/INFIMH-16-0019/2016 (H3N2) 
+                                                             6660                                                              6760 
+                                A/Switzerland/9715293/2013 (H3N2)                                        A/Tasmania/503/2020 (H3N2) 
+                                                              376                                                             24620 
+ A/Turkey/Massachusetts/3740/1965 (H6N2) + A/Texas/50/2012 (H2N2) A/Turkey/Massachusetts/3740/1965 (H6N2) + B/Yamagata/16/1988 (NB) 
+                                                              276                                                               276 
+                                      A/Victoria/2570/2019 (H1N1)                                       A/Wisconsin/588/2019 (H1N1) 
+                                                            20090                                                              6936 
+                                                              All                                            B/Austria/1359417/2021 
+                                                            18410                                                              9036 
+                                                           B/H6NB                                                B/Phuket/3073/2013 
+                                                              146                                                             31544 
+                                              B/Washington/2/2019                                                              None 
+                                                            29514                                                             18340 
+                                             Staph. Enterotoxin B                                                              <NA> 
+                                                             9870                                                              9312 
+
+$Protein
+
+                   CMV glycoprotein B                pHA                pNA     Tetanus toxoid               <NA> 
+              1936               4656             100332              17210               4656             120120 
+
+$StrainProt
+
+              gB   pHA_A/Brisbane pHA_A/California     pHA_A/Darwin  pHA_A/Guangdong  pHA_A/Hong Kong     pHA_A/Panama 
+            4656             6560             6560             6560             6560            11216             6560 
+ pHA_A/Singapore   pHA_A/Tasmania  pHA_A/Wisconsin    pHA_B/Austria     pHA_B/Phuket pHA_B/Washington   pNA_A/Brisbane 
+            6560             6560             6560             6560            11216            11216             4656 
+pNA_A/California  pNA_A/Hong Kong               TT             <NA> 
+            5356             5356             4656           131542 
+
+$Dilution
+
+     1     25     40    100    120    200    500   1000   2500   4000  12500  16000 
+131542  10392   6200   6928   6180   6220  19328  12440  12400  12440  12400  12440 
+
+$ValueUnit
+
+   MFI  pg/ml  titer 
+177428  60060  11422 
+
+$Isotype
+
+   IgA    IgG   IgG1   IgG2   IgG3   IgG4    IgM   <NA> 
+  3464   3464   3464   3464   3464   3464   3464 224662 
+
+================================================================================================================================== 
+Completed: 2026-03-26 15:23:49 
+Elapsed time: 1.507249 secs.
